@@ -26,7 +26,8 @@
 
 // Properties
 GLuint screenWidth = 1000, screenHeight = 1000;
-std::vector <ObjectWithPosition> objects;
+std::vector <ObjectWithPosition> cubes;
+std::vector <ObjectWithPosition> spheres;
 
 // Function prototypes
 bool detectCollisions(const float & delta);
@@ -45,7 +46,6 @@ bool firstMouse = true;
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 
-int numberOfCubes = 3;
 
 // The MAIN function, from here we start our application and run our Game loop
 int main()
@@ -146,17 +146,19 @@ int main()
     };
 
 
-    objects.push_back(ObjectWithPosition(glm::vec3(2.0f, 2.0f, 2.0f), 1.0f));
-    objects.push_back(ObjectWithPosition(glm::vec3(5.0f, 0.5f, 3.0f), 1.0f));
-    objects.push_back(ObjectWithPosition(glm::vec3(8.0f, 0.5f, 2.0f), 1.0f));
+    cubes.push_back(ObjectWithPosition(glm::vec3(2.0f, 2.0f, 2.0f), 1.0f));
+    cubes.push_back(ObjectWithPosition(glm::vec3(5.0f, 0.5f, 3.0f), 1.0f));
+    cubes.push_back(ObjectWithPosition(glm::vec3(8.0f, 0.5f, 2.0f), 1.0f));
+    spheres.push_back(ObjectWithPosition(glm::vec3(-10.0f, 0.0f, 15.0f), 1.0f));
+    spheres.push_back(ObjectWithPosition(glm::vec3(-8.0f, 0.0f, -2.0f), 1.0f));
 
-    GLuint VBO, VAO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
+    GLuint VBOFloor, VAOFloor;
+    glGenVertexArrays(1, &VAOFloor);
+    glGenBuffers(1, &VBOFloor);
     // Bind our Vertex Array Object first, then bind and set our buffers and pointers.
-    glBindVertexArray(VAO);
+    glBindVertexArray(VAOFloor);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOFloor);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     // Position attribute
@@ -188,11 +190,11 @@ int main()
     glBindVertexArray(0); // Unbind VAO
 
 
-    MyTexture texture("../Images/floor.jpg");
+    MyTexture textureFloor("../Images/floor.jpg");
 
     MyTexture textureCube("../Images/container2.png");
 
-    texture.setParameters(GL_REPEAT, GL_REPEAT,GL_LINEAR, GL_LINEAR);
+    textureFloor.setParameters(GL_REPEAT, GL_REPEAT,GL_LINEAR, GL_LINEAR);
 
     textureCube.setParameters(GL_REPEAT, GL_REPEAT,GL_LINEAR, GL_LINEAR);
 
@@ -212,16 +214,19 @@ int main()
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Draw our first triangle
-        ourShader.Use();
-
-        texture.bindTexture("ourTexture1", &ourShader);
-
         // Create camera transformation
         glm::mat4 view;
         view = camera.GetViewMatrix();
         glm::mat4 projection;
         projection = glm::perspective(glm::radians(camera.Zoom), (float)screenWidth/(float)screenHeight, 0.1f, 50.0f);
+
+
+        // Draw our first triangle
+        ourShader.Use();
+
+        textureFloor.bindTexture("ourTexture1", &ourShader);
+
+
         // Get the uniform locations
         GLint modelLoc = glGetUniformLocation(ourShader.Program, "model");
         GLint viewLoc = glGetUniformLocation(ourShader.Program, "view");
@@ -230,7 +235,7 @@ int main()
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-        glBindVertexArray(VAO);
+        glBindVertexArray(VAOFloor);
 
         // Calculate the model matrix for each object and pass it to shader before drawing
         glm::mat4 model;
@@ -243,17 +248,17 @@ int main()
 
         glBindVertexArray(0);
 
-        texture.unbindTexture();
+        textureFloor.unbindTexture();
 
         textureCube.bindTexture("ourTexture1", &ourShader);
-        for (int i = 0; i < numberOfCubes; ++i) {
+        for (int i = 0; i < cubes.size(); ++i) {
 
 
             glBindVertexArray(VAOCube);
 
             // Calculate the model matrix for each object and pass it to shader before drawing
             model = glm::mat4();
-            model = glm::translate(model, objects[i].getPosition());
+            model = glm::translate(model, cubes[i].getPosition());
 
 
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
@@ -264,13 +269,33 @@ int main()
         glBindVertexArray(0);
         textureCube.unbindTexture();
 
+        modelShader.Use();   // <-- Don't forget this one!
+        // Transformation matrices
+        glUniformMatrix4fv(glGetUniformLocation(modelShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+        glUniformMatrix4fv(glGetUniformLocation(modelShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+
+
+        for (int i = 0; i < spheres.size(); ++i) {
+
+            // Draw the loaded model
+            model = glm::mat4();
+            model = glm::translate(model, spheres[i].getPosition()); // Translate it down a bit so it's at the center of the scene
+            //model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// It's a bit too big for our scene, so scale it down
+            glUniformMatrix4fv(glGetUniformLocation(modelShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+            glUniform1i(glGetUniformLocation(modelShader.Program, "texture_diffuse1"), 1);
+            ourModel.Draw(modelShader);
+        }
+
+
+
+
 
         // Swap the buffers
         glfwSwapBuffers(window);
     }
     // Properly de-allocate all resources once they've outlived their purpose
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(1, &VAOFloor);
+    glDeleteBuffers(1, &VBOFloor);
 
     glDeleteVertexArrays(1, &VAOCube);
     glDeleteBuffers(1, &VBOCube);
@@ -338,8 +363,13 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 bool detectCollisions(const float & delta)
 {
-    for (int i = 0; i < objects.size(); ++i) {
-        if (objects[i].detectCollision(camera, delta))
+    for (int i = 0; i < cubes.size(); ++i) {
+        if (cubes[i].detectCollision(camera, delta))
+            return true;
+    }
+
+    for (int i = 0; i < spheres.size(); ++i) {
+        if (spheres[i].detectCollision(camera, delta))
             return true;
     }
     return false;

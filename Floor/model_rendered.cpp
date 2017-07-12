@@ -14,6 +14,7 @@
 
 #include "Texture.h"
 #include "Model.h"
+#include "PointLight.h"
 
 #include "ObjectWithPosition.h"
 
@@ -22,6 +23,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+
+//LightProperties
+Intensity intensity = Intensity (glm::vec3 (0.2f, 0.2f, 0.2f),glm::vec3 (0.5f, 0.5f, 0.5f),glm::vec3(1.0f, 1.0f, 1.0f) );
+PointLight pointLight = PointLight(1,glm::vec4(1.2f, 1.0f, 9.0f,1.0f),1.0f,0.09,0.032, intensity);
 
 
 // Properties
@@ -81,26 +86,23 @@ int main()
 
     // Setup and compile our shaders
     Shader ourShader("../shaders/shader.vs", "../shaders/shader.frag");
-    // Setup and compile our shaders
-    Shader modelShader("../shaders/model_loading.vs", "../shaders/model_loading.frag");
-
     Model ourModel("../Models/earth/earth.obj",1);
 
 
     // Set up our vertex data (and buffer(s)) and attribute pointers
-    GLfloat vertices[] = {
+    GLfloat floorVertices[] = {
 
-
-        -100.0f, -0.0f, -100.0f,  0.0f, 100.0f,
-        100.0f, -0.0f, -100.0f,  100.0f, 100.0f,
-        100.0f, -0.0f,  100.0f,  100.0f, 0.0f,
-        100.0f, -0.0f,  100.0f,  100.0f, 0.0f,
-        -100.0f, -0.0f,  100.0f,  0.0f, 0.0f,
-        -100.0f, -0.0f, -100.0f,  0.0f, 100.0f,
+        //coords                        //normals       //texCoords
+        -100.0f, -0.0f, -100.0f,  0.0f,  1.0f,  0.0f,  0.0f, 100.0f,
+        100.0f, -0.0f, -100.0f,  0.0f,  1.0f,  0.0f, 100.0f, 100.0f,
+        100.0f, -0.0f,  100.0f,  0.0f,  1.0f,  0.0f, 100.0f, 0.0f,
+        100.0f, -0.0f,  100.0f,  0.0f,  1.0f,  0.0f, 100.0f, 0.0f,
+        -100.0f, -0.0f,  100.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f,
+        -100.0f, -0.0f, -100.0f,  0.0f,  1.0f,  0.0f, 0.0f, 100.0f
 
     };
 
-    // Set up our vertex data (and buffer(s)) and attribute pointers
+
     GLfloat cube[] = {
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
@@ -159,15 +161,17 @@ int main()
     glBindVertexArray(VAOFloor);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBOFloor);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(floorVertices), floorVertices, GL_STATIC_DRAW);
 
     // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(0);
+    //normals
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(1);
     // TexCoord attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
     glEnableVertexAttribArray(2);
-
     glBindVertexArray(0); // Unbind VAO
 
 
@@ -224,7 +228,9 @@ int main()
         // Draw our first triangle
         ourShader.Use();
 
-        textureFloor.bindTexture("ourTexture1", &ourShader);
+        pointLight.SetUniformData(&ourShader,"light");
+        GLint viewPosLoc  = glGetUniformLocation(ourShader.Program, "viewPos");
+         glUniform3f(viewPosLoc,  camera.Position.x, camera.Position.y, camera.Position.z);
 
 
         // Get the uniform locations
@@ -235,44 +241,30 @@ int main()
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-        glBindVertexArray(VAOFloor);
 
+        textureFloor.bindTexture(&ourShader);
+        glBindVertexArray(VAOFloor);
         // Calculate the model matrix for each object and pass it to shader before drawing
         glm::mat4 model;
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-
-
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
         glDrawArrays(GL_TRIANGLES, 0, 6);
-
         glBindVertexArray(0);
-
         textureFloor.unbindTexture();
 
-        textureCube.bindTexture("ourTexture1", &ourShader);
+
+        textureCube.bindTexture(&ourShader);
+        glBindVertexArray(VAOCube);
         for (int i = 0; i < cubes.size(); ++i) {
-
-
-            glBindVertexArray(VAOCube);
-
             // Calculate the model matrix for each object and pass it to shader before drawing
             model = glm::mat4();
             model = glm::translate(model, cubes[i].getPosition());
-
-
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
             glDrawArrays(GL_TRIANGLES, 0, 36);
 
         }
-        glBindVertexArray(0);
+        glBindVertexArray(0); //unbind VAO
         textureCube.unbindTexture();
-
-        modelShader.Use();   // <-- Don't forget this one!
-        // Transformation matrices
-        glUniformMatrix4fv(glGetUniformLocation(modelShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-        glUniformMatrix4fv(glGetUniformLocation(modelShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 
 
         for (int i = 0; i < spheres.size(); ++i) {
@@ -281,14 +273,10 @@ int main()
             model = glm::mat4();
             model = glm::translate(model, spheres[i].getPosition()); // Translate it down a bit so it's at the center of the scene
             //model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// It's a bit too big for our scene, so scale it down
-            glUniformMatrix4fv(glGetUniformLocation(modelShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-            glUniform1i(glGetUniformLocation(modelShader.Program, "texture_diffuse1"), 1);
-            ourModel.Draw(modelShader);
+            glUniformMatrix4fv(glGetUniformLocation(ourShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+            glUniform1i(glGetUniformLocation(ourShader.Program, "texture_diffuse1"), 1);
+            ourModel.Draw(ourShader);
         }
-
-
-
-
 
         // Swap the buffers
         glfwSwapBuffers(window);

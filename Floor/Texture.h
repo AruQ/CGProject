@@ -50,17 +50,18 @@ public:
 
 
 
-    void bindTexture (const char* uniformName, Shader* shader)
+    void bindTexture (Shader* shader)
     {
 
         // Bind Textures using texture units
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
 
+        glUniform1i(glGetUniformLocation(shader->Program, "material.diffuse"),  0);
+        glUniform1i(glGetUniformLocation(shader->Program, "material.specular"), 1);
+        glUniform1f(glGetUniformLocation(shader->Program, "material.shininess"), 32.0f);
 
 
-        glUniform1i(glGetUniformLocation(shader->Program, uniformName), 0);
-        //        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
     void unbindTexture()

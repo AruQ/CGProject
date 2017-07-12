@@ -72,6 +72,11 @@ public:
           return os;
       }
 
+    glm::vec4& getPosition()
+    {
+        return position;
+    }
+
 private:
 
     glm::vec4 position;

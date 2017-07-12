@@ -26,7 +26,7 @@
 
 //LightProperties
 Intensity intensity = Intensity (glm::vec3 (0.2f, 0.2f, 0.2f),glm::vec3 (0.5f, 0.5f, 0.5f),glm::vec3(1.0f, 1.0f, 1.0f) );
-PointLight pointLight = PointLight(1,glm::vec4(1.2f, 1.0f, 9.0f,1.0f),1.0f,0.09,0.032, intensity);
+PointLight pointLight = PointLight(1,glm::vec4(2.2f, 4.0f, 1.0f,1.0f),1.0f,0.09,0.032, intensity);
 
 
 // Properties
@@ -63,7 +63,7 @@ int main()
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
     glfwWindowHint(GLFW_SAMPLES, 4);
 
-    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "fpsCameraClass - LearnOpenGL", nullptr, nullptr); // Windowed
+    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "Progetto n2", nullptr, nullptr); // Windowed
     glfwMakeContextCurrent(window);
 
     // Set the required callback functions
@@ -86,6 +86,8 @@ int main()
 
     // Setup and compile our shaders
     Shader ourShader("../shaders/shader.vs", "../shaders/shader.frag");
+    Shader lampShader("../shaders/lamp.vs", "../shaders/lamp.frag");
+
     Model ourModel("../Models/earth/earth.obj",1);
 
 
@@ -278,6 +280,27 @@ int main()
             ourModel.Draw(ourShader);
         }
 
+
+
+
+        // Also draw the lamp object, again binding the appropriate shader
+        lampShader.Use();
+        // Get location objects for the matrices on the lamp shader (these could be different on a different shader)
+        modelLoc = glGetUniformLocation(lampShader.Program, "model");
+        viewLoc  = glGetUniformLocation(lampShader.Program, "view");
+        projLoc  = glGetUniformLocation(lampShader.Program, "projection");
+        // Set matrices
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+        model = glm::mat4();
+        model = glm::translate(model, glm::vec3(pointLight.getPosition().x,pointLight.getPosition().y,pointLight.getPosition().z));
+        model = glm::scale(model, glm::vec3(0.2f)); // Make it a smaller cube
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        // Draw the light object (using light's vertex attributes)
+        glBindVertexArray(VAOCube);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(0);
+
         // Swap the buffers
         glfwSwapBuffers(window);
     }
@@ -352,12 +375,12 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 bool detectCollisions(const float & delta)
 {
     for (int i = 0; i < cubes.size(); ++i) {
-        if (cubes[i].detectCollision(camera, delta))
+        if (cubes[i].getPosition().y < camera.Position.y*2 && cubes[i].detectCollision(camera, delta))
             return true;
     }
 
     for (int i = 0; i < spheres.size(); ++i) {
-        if (spheres[i].detectCollision(camera, delta))
+        if (spheres[i].getPosition().y < camera.Position.y*2 && spheres[i].detectCollision(camera, delta))
             return true;
     }
     return false;

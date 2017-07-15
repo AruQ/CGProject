@@ -13,6 +13,9 @@
 #include "Camera.h"
 #include "Altitude.h"
 
+#include "Texture.h"
+#include "Temperature.h"
+
 // GLM Mathemtics
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -31,7 +34,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void Do_Movement();
 
 // Camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 2200.0f, 0.0f));
 bool keys[1024];
 GLfloat lastX = 400, lastY = 300;
 bool firstMouse = true;
@@ -74,9 +77,54 @@ int main()
     Shader shader("../shaders/surface.vs", "../shaders/surface.frag");
 
 
-    Altitude altitude("../data/DEM_test.dat");
+    Altitude altitude("../data/altitudes.dat");
+
+    Matrix matrix("../data/lava.dat");
+    Temperature temperature ("../data/temperature.dat");
+    temperature.printColor();
+
+    MyTexture texture("../images/texture.png");
+    texture.setParameters(GL_REPEAT, GL_REPEAT,GL_NEAREST, GL_NEAREST);
+
 
     float* vertices = altitude.getVBOVertices();
+
+    //    altitude.printVBO();
+    //    altitude.printEBO();
+
+
+    unsigned int* indices = altitude.getEBO();
+
+    GLuint VBO, VAO, EBO;
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+    // Bind our Vertex Array Object first, then bind and set our buffers and pointers.
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, altitude.getSizeVBO()*sizeof(float), vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, altitude.getSizeEBO()*sizeof(unsigned int), indices, GL_STATIC_DRAW);
+
+
+    // Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (GLvoid*)0);
+    glEnableVertexAttribArray(0);
+    //normals
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (GLvoid*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    // TexCoord attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (GLvoid*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+
+
+    glBindVertexArray(0); // Unbind VAO
+
+
 
 
 
@@ -98,22 +146,36 @@ int main()
 
         shader.Use();   // <-- Don't forget this one!
         // Transformation matrices
-        glm::mat4 projection = glm::perspective(camera.Zoom, (float)screenWidth/(float)screenHeight, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(camera.Zoom, (float)screenWidth/(float)screenHeight, 0.1f, 3000.0f);
         glm::mat4 view = camera.GetViewMatrix();
         glUniformMatrix4fv(glGetUniformLocation(shader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
         glUniformMatrix4fv(glGetUniformLocation(shader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 
         // Draw the loaded model
         glm::mat4 model;
-        model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // Translate it down a bit so it's at the center of the scene
-        //model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// It's a bit too big for our scene, so scale it down
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -10.0f)); // Translate it down a bit so it's at the center of the scene
+//        model = glm::rotate(model, 180.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+        //        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// It's a bit too big for our scene, so scale it down
         glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-         glUniform1i(glGetUniformLocation(shader.Program, "texture_diffuse1"), 1);
-//        ourModel.Draw(shader);
+        glUniform1i(glGetUniformLocation(shader.Program, "texture_diffuse1"), 1);
+
+
+        texture.bindTexture(&shader);
+        glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES, altitude.getSizeEBO(), GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+
+        texture.unbindTexture();
+        //        ourModel.Draw(shader);
 
         // Swap the buffers
         glfwSwapBuffers(window);
     }
+
+
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
 
     glfwTerminate();
     return 0;

@@ -87,6 +87,11 @@ public:
 
     }
 
+    Coordinates getCoordinates ()
+    {
+        return coords;
+    }
+
     float* getDataLinear ()
     {
         int globalIndex = 0;
@@ -98,6 +103,11 @@ public:
             }
         }
 
+    }
+
+    float ** getData()
+    {
+        return data;
     }
 
 

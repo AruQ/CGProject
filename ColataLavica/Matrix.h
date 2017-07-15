@@ -9,6 +9,12 @@
 
 using namespace std;
 
+struct Coordinates
+{
+    unsigned int nRows;
+    unsigned int nCols;
+};
+
 class Matrix
 {
 public:
@@ -17,13 +23,11 @@ public:
     {
         loadFromFile(path);
 
-
-
     }
 
     ~Matrix()
     {
-        for (int i = 0; i < nRows; ++i) {
+        for (int i = 0; i < coords.nRows; ++i) {
             delete [] data[i];
         }
         delete [] data;
@@ -47,11 +51,11 @@ public:
                 vector<string> sep = split(line, ' ');
                 switch (i) {
                 case 0:
-                    nCols= std::stoi(sep[1]);
+                    coords.nCols= std::stoi(sep[1]);
                     break;
                 case 1:
-                    nRows= std::stoi(sep[1]);
-                    data = new float* [nRows];
+                    coords.nRows= std::stoi(sep[1]);
+                    data = new float* [coords.nRows];
                     break;
                 case 2:
                     xllcorner= std::stof(sep[1]);
@@ -66,9 +70,9 @@ public:
                     NODATA_value= std::stof(sep[1]);
                     break;
                 default:
-                    data[row] = new float[nCols];
+                    data[row] = new float[coords.nCols];
 
-                    for(int col=0; col<nCols; col++)
+                    for(int col=0; col<coords.nCols; col++)
                     {
                         data[row][col] = std::stof(sep[col]);
                     }
@@ -83,10 +87,39 @@ public:
 
     }
 
+    float* getDataLinear ()
+    {
+        int globalIndex = 0;
+        float * data = new float[coords.nRows* coords.nCols];
+        for (int i = 0; i < coords.nRows; ++i) {
+            for (int j = 0; j < coords.nCols; ++j) {
+                data[globalIndex] = this->data[i][j];
+                globalIndex++;
+            }
+        }
 
-private:
-    unsigned int nRows;
-    unsigned int nCols;
+    }
+
+
+    friend std::ostream & operator <<( std::ostream &os, const Matrix &matrix )
+    {
+
+        os<<"Matrix di size: "<<matrix.coords.nRows<<" X "<<matrix.coords.nCols<<"\n";
+
+        for (int i = 0; i < matrix.coords.nRows; ++i) {
+            for (int j = 0; j < matrix.coords.nCols; ++j) {
+                os<<matrix.data[i][j]<<" ";
+
+
+            }
+            os<<"\n";
+        }
+        return os;
+    }
+
+
+protected:
+    Coordinates coords;
     float xllcorner;
     float yllcorner;
     float cellsize;

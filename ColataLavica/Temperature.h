@@ -59,6 +59,7 @@ protected:
 
     float minimum;
     float maximum;
+    GLuint n_tex_surface;
 
     void setMin ()
     {
@@ -117,6 +118,18 @@ protected:
             }
         }
 
+    }
+
+    void createTexture ()
+    {
+
+
+        glGenTextures(1, &n_tex_surface);
+        glBindTexture(GL_TEXTURE_2D, n_tex_surface);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coords.nCols, coords.nRows, 0, GL_RGBA, GL_FLOAT, temperatureColor);
+        glGenerateMipmap(GL_TEXTURE_2D);
     }
 
 

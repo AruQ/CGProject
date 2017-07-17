@@ -110,6 +110,10 @@ public:
         return data;
     }
 
+    float getCellSize()
+    {
+        return cellsize;
+    }
 
     friend std::ostream & operator <<( std::ostream &os, const Matrix &matrix )
     {

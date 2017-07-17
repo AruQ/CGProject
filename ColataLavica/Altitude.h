@@ -17,8 +17,10 @@ public:
         coordsAltitude.nCols = coords.nCols+1;
         coordsAltitude.nRows = coords.nRows+1;
         VBOVertices = NULL;
+        indicesEBO = NULL;
 
         allocMatrix();
+
     }
 
     ~Altitude()
@@ -34,6 +36,9 @@ public:
 
         if (VBOVertices != NULL)
             delete [] VBOVertices;
+
+        if (indicesEBO !=NULL)
+            delete [] indicesEBO;
     }
 
 
@@ -53,16 +58,77 @@ public:
         return os;
     }
 
+    void printVBO ()
+    {
+        if (VBOVertices != NULL)
+        {
+            for (int i = 0; i < sizeVBO; ++i) {
+                std::cout<<VBOVertices[i]<<" ";
+                if((i+1)% 8 == 0)
+                {
+                    cout<<std::endl;
+                }
+
+
+            }
+        }
+    }
+
+    void printEBO ()
+    {
+        if (indicesEBO != NULL)
+        {
+            for (int i = 0; i < sizeEBO; ++i) {
+                std::cout<<indicesEBO[i]<<" ";
+                if((i+1)% 3 == 0)
+                {
+                    cout<<std::endl;
+                }
+
+
+            }
+        }
+    }
+
+    void addMatrix (Matrix & m)
+    {
+        assert(coords.nCols == m.getCoordinates().nCols && coords.nRows == m.getCoordinates().nRows);
+
+        cout<<coords.nRows <<"  "<<coords.nCols<<" - "<<m.getCoordinates().nRows<<" "<<m.getCoordinates().nCols<<endl;
+        for (int i = 0; i < coords.nRows; ++i) {
+            for (int j = 0; j < coords.nCols; ++j) {
+                data[i][j] += m.getData()[i][j]*1000;
+            }
+
+
+
+        }
+        std::cout<<"sono qui "<<endl;
+    }
+
+    void checkNOValue()
+    {
+        //TODO
+    }
+
 
     float* getVBOVertices()
     {
         if(VBOVertices == NULL)
         {
             createMatrixAltitude();
+
+            setMinMaxVertices();
+
             calculateNormals();
+
+            updatePositionVertices();
+
             calculateTexCoords();
             calcuteEBO();
             generateVBO();
+
+            cout<<"sono maxium altitude "<< maximumAltitude<<endl;
         }
         return VBOVertices;
     }
@@ -73,17 +139,103 @@ public:
         return coordsAltitude;
     }
 
+    unsigned int * getEBO ()
+    {
+        return indicesEBO;
+    }
+
+    size_t getSizeVBO()
+    {
+        return sizeVBO;
+    }
+
+    size_t getSizeEBO()
+    {
+        return sizeEBO;
+    }
+
+    float getMinimumAltitude ()
+    {
+        return minimumAltitude;
+    }
+
+    float getMaximumAltitude ()
+    {
+        return maximumAltitude;
+    }
+
+
+
 protected:
     glm::vec3 ** vertices;
     glm::vec3 ** normals;
     glm::vec2 ** texCoords;
 
-    int * indicesEBO;
+    unsigned int * indicesEBO;
 
     Coordinates coordsAltitude;
 
     float * VBOVertices;
     int sizeVBO;
+    int sizeEBO;
+
+    float minimumAltitude;
+    float maximumAltitude;
+
+    void setMinMax ()
+    {
+        bool first = true;
+        for (int i = 0; i < coords.nRows; ++i) {
+            for (int j = 0; j < coords.nCols; ++j) {
+                if (data[i][j] != NODATA_value)
+                {
+                    if (first)
+                    {
+                        minimumAltitude = data[i][j];
+                        maximumAltitude = data[i][j];
+                        first = false;
+                    }
+
+                    if (data[i][j] < minimumAltitude)
+                    {
+                        minimumAltitude = data[i][j];
+                    }
+                    if (data[i][j] > maximumAltitude)
+                    {
+                        maximumAltitude = data[i][j];
+                    }
+                }
+            }
+        }
+    }
+
+    void setMinMaxVertices ()
+    {
+        bool first = true;
+        for (int i = 0; i < coords.nRows; ++i) {
+            for (int j = 0; j < coords.nCols; ++j) {
+                if (data[i][j] != NODATA_value)
+                {
+                    if (first)
+                    {
+                        minimumAltitude = vertices[i][j].y;
+                        maximumAltitude = vertices[i][j].y;
+                        first = false;
+                    }
+
+                    if (data[i][j] < minimumAltitude)
+                    {
+                        minimumAltitude = vertices[i][j].y;
+                    }
+                    if (data[i][j] > maximumAltitude)
+                    {
+                        maximumAltitude = vertices[i][j].y;
+                    }
+                }
+            }
+        }
+    }
+
 
 
 
@@ -152,10 +304,12 @@ protected:
                 //                printf ("Sono cella (%d, %d) e sto sommando (%d,%d) \n", i,j,i+_i,j+_j);
                 if(i+_i >=0 && i+_i <coords.nRows && j+_j >=0 && j+_j <coords.nCols )
                 {
-
-//                    printf ("Sono cella (%d, %d) e sto sommando %f della cella (%d,%d)\n", i,j,data[i+_i][j+_j], i+_i,j+_j);
-                    sum += data[i+_i][j+_j];
-                    cout_cells++;
+                    if (data[i+_i][j+_j] !=NODATA_value)
+                    {
+                        //                    printf ("Sono cella (%d, %d) e sto sommando %f della cella (%d,%d)\n", i,j,data[i+_i][j+_j], i+_i,j+_j);
+                        sum += data[i+_i][j+_j];
+                        cout_cells++;
+                    }
                 }
             }
         }
@@ -183,12 +337,13 @@ protected:
             texCoords[i] = new glm::vec2 [coordsAltitude.nCols];
         }
 
-        indicesEBO = new int [coordsAltitude.nRows * coordsAltitude.nCols * 2 * 3];
     }
 
 
     void createMatrixAltitude()
     {
+
+
         for(int i = 0; i< coordsAltitude.nRows; i++)
         {
             for (int j = 0; j < coordsAltitude.nCols; ++j)
@@ -196,6 +351,21 @@ protected:
                 vertices[i][j].x = j*cellsize;
                 vertices[i][j].y = averageNeighbourhood(i,j);
                 vertices[i][j].z = i*cellsize;
+
+            }
+
+        }
+    }
+
+    void updatePositionVertices ()
+    {
+        for(int i = 0; i< coordsAltitude.nRows; i++)
+        {
+            for (int j = 0; j < coordsAltitude.nCols; ++j)
+            {
+                vertices[i][j].x -= coordsAltitude.nCols*cellsize/2;
+                vertices[i][j].y -= maximumAltitude;
+                vertices[i][j].z -= coordsAltitude.nRows*cellsize;
 
             }
 
@@ -213,11 +383,13 @@ protected:
         {
             for (int j = 0; j < coordsAltitude.nCols; ++j)
             {
-                normals[i][j] = getNormalOfVertex(i,j);
+                normals[i][j] =/*glm::vec3 (0.0f,1.0f,0.0f);*/ getNormalOfVertex(i,j);
 
             }
 
         }
+
+
 
 
     }
@@ -231,7 +403,9 @@ protected:
         {
             for (int j = 0; j < coordsAltitude.nCols; ++j)
             {
-                texCoords[i][j] = glm::vec2(i/coordsAltitude.nRows, j/coordsAltitude.nCols);
+                texCoords[i][j] = glm::vec2((float)i/coordsAltitude.nRows,(float) j/coordsAltitude.nCols);
+
+                //                cout<<"texCoords "<<texCoords[i][j].x <<"  "<<texCoords[i][j].y<<endl;
 
             }
 
@@ -240,6 +414,8 @@ protected:
 
     void calcuteEBO ()
     {
+        sizeEBO = (coordsAltitude.nRows-1) * (coordsAltitude.nCols-1) * 2 * 3;
+        indicesEBO = new unsigned int [sizeEBO];
         unsigned int globalIndex = 0;
         for (int i = 0; i < coordsAltitude.nRows-1; ++i) {
             for (int j = 0; j < coordsAltitude.nCols-1; ++j) {

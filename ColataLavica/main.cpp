@@ -34,7 +34,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void Do_Movement();
 
 // Camera
-Camera camera(glm::vec3(0.0f, 2200.0f, 0.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, -1.0f));
+
 bool keys[1024];
 GLfloat lastX = 400, lastY = 300;
 bool firstMouse = true;
@@ -45,6 +46,7 @@ GLfloat lastFrame = 0.0f;
 // The MAIN function, from here we start our application and run our Game loop
 int main()
 {
+    camera.Front = glm::vec3(0.0f, -1.0f,-1.0f);
     // Init GLFW
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -79,17 +81,28 @@ int main()
 
     Altitude altitude("../data/altitudes.dat");
 
+
+//    Altitude altitude("../data/DEM_test.dat");
+//        Altitude altitude("../data/DEM_Albano.asc");
+
+
     Matrix matrix("../data/lava.dat");
+
+//    altitude.addMatrix(matrix);
     Temperature temperature ("../data/temperature.dat");
-    temperature.printColor();
+//    temperature.printColor();
 
     MyTexture texture("../images/texture.png");
     texture.setParameters(GL_REPEAT, GL_REPEAT,GL_NEAREST, GL_NEAREST);
 
 
     float* vertices = altitude.getVBOVertices();
+//    camera.Position = glm::vec3(altitude.getCoordinates().nCols/**altitude.getCellSize()/2*/, altitude.getMaximumAltitude(),(float) altitude.getCoordinates().nRows/**altitude.getCellSize()*/);
 
-    //    altitude.printVBO();
+
+    cout<<"aaa"<<altitude.getMinimumAltitude()<<endl;
+    cout<<"aaa"<<altitude.getMaximumAltitude()<<endl;
+//        altitude.printVBO();
     //    altitude.printEBO();
 
 
@@ -146,16 +159,18 @@ int main()
 
         shader.Use();   // <-- Don't forget this one!
         // Transformation matrices
-        glm::mat4 projection = glm::perspective(camera.Zoom, (float)screenWidth/(float)screenHeight, 0.1f, 3000.0f);
+        glm::mat4 projection = glm::perspective(camera.Zoom, (float)screenWidth/(float)screenHeight, 0.1f, 40000.0f);
         glm::mat4 view = camera.GetViewMatrix();
         glUniformMatrix4fv(glGetUniformLocation(shader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
         glUniformMatrix4fv(glGetUniformLocation(shader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 
         // Draw the loaded model
-        glm::mat4 model;
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -10.0f)); // Translate it down a bit so it's at the center of the scene
-//        model = glm::rotate(model, 180.0f, glm::vec3(0.0f, 0.0f, 1.0f));
-        //        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// It's a bit too big for our scene, so scale it down
+        glm::mat4 model ;
+//        model = glm::rotate(model, 90.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+//        model = glm::translate(model, glm::vec3(-50.0f, -10.0f, 100.0f)); // Translate it down a bit so it's at the center of the scene
+//        model = glm::translate(model, glm::vec3(0.0f,0.0f, altitude.getCoordinates().nRows)); // Translate it down a bit so it's at the center of the scene
+//        model = glm::translate(model, glm::vec3(altitude.getCoordinates().nCols/2,0.0f, 0.0f)); // Translate it down a bit so it's at the center of the scene
+//                model = glm::scale(model, glm::vec3(0.8f, 0.8f, 0.8f));	// It's a bit too big for our scene, so scale it down
         glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(glGetUniformLocation(shader.Program, "texture_diffuse1"), 1);
 

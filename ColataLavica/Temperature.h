@@ -28,7 +28,6 @@ public:
 
         computeColor();
 
-        //        allocMatrix();
     }
 
     void printColor ()
@@ -63,11 +62,16 @@ protected:
 
     void setMin ()
     {
-        minimum =INT_MAX;
+        bool first = false;
         for (int i = 0; i < coords.nRows; ++i) {
             for (int j = 0; j < coords.nCols; ++j) {
-                if (data[i][j] != 0.0f)
+                if (data[i][j] != NODATA_value)
                 {
+                    if (!first)
+                    {
+                        minimum = data[i][j];
+                        first = true;
+                    }
                     if (data[i][j] < minimum)
                     {
                         minimum = data[i][j];
@@ -79,12 +83,17 @@ protected:
 
     void setMax ()
     {
-        maximum =INT_MIN;
+        bool first = false;
         for (int i = 0; i < coords.nRows; ++i) {
             for (int j = 0; j < coords.nCols; ++j) {
-                if (data[i][j] != 0.0f)
+                if (data[i][j] != NODATA_value)
                 {
-                    if (data[i][j] > minimum)
+                    if (!first)
+                    {
+                        maximum = data[i][j];
+                        first = true;
+                    }
+                    if (data[i][j] > maximum)
                     {
                         maximum = data[i][j];
                     }
@@ -100,7 +109,9 @@ protected:
         for (int i = 0; i < coords.nRows; ++i) {
             for (int j = 0; j < coords.nCols; ++j) {
                 if (data[i][j] != 0.0f)
+                {
                     temperatureColor[globalIndex++] = (data[i][j] - minimum) / (maximum - minimum);
+                }
                 else
                     temperatureColor[globalIndex++] = 0.0f;
             }

@@ -2,6 +2,7 @@
 #define ALTITUDE_H
 
 #include "Matrix.h"
+#include "Temperature.h"
 // GLM Mathematics
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -18,6 +19,8 @@ public:
         coordsAltitude.nRows = coords.nRows+1;
         VBOVertices = NULL;
         indicesEBO = NULL;
+        temperature = NULL;
+
 
         allocMatrix();
 
@@ -97,7 +100,7 @@ public:
         cout<<coords.nRows <<"  "<<coords.nCols<<" - "<<m.getCoordinates().nRows<<" "<<m.getCoordinates().nCols<<endl;
         for (int i = 0; i < coords.nRows; ++i) {
             for (int j = 0; j < coords.nCols; ++j) {
-                data[i][j] += m.getData()[i][j]*1000;
+                data[i][j] += m.getData()[i][j];
             }
 
 
@@ -131,6 +134,11 @@ public:
             cout<<"sono maxium altitude "<< maximumAltitude<<endl;
         }
         return VBOVertices;
+    }
+
+    void setTemperature(Temperature* _temperature)
+    {
+        this->temperature = _temperature;
     }
 
 
@@ -181,6 +189,8 @@ protected:
 
     float minimumAltitude;
     float maximumAltitude;
+
+    Temperature* temperature;
 
     void setMinMax ()
     {
@@ -441,10 +451,14 @@ protected:
 
     void generateVBO ()
     {
-        sizeVBO = coordsAltitude.nRows * coordsAltitude.nCols * 8;
+        if (temperature != NULL)
+            sizeVBO = coordsAltitude.nRows * coordsAltitude.nCols * 9;
+        else
+            sizeVBO = coordsAltitude.nRows * coordsAltitude.nCols * 8;
         VBOVertices = new float [sizeVBO];
 
         int globalIndex = 0;
+        int colorIndex=0;
         for (int i = 0; i < coordsAltitude.nRows; ++i) {
             for (int j = 0; j < coordsAltitude.nCols; ++j) {
                 VBOVertices[globalIndex++] = vertices[i][j].x;
@@ -455,8 +469,11 @@ protected:
                 VBOVertices[globalIndex++] = normals[i][j].y;
                 VBOVertices[globalIndex++] = normals[i][j].z;
 
-                VBOVertices[globalIndex++] = texCoords[i][j].x;
-                VBOVertices[globalIndex++] = texCoords[i][j].y;
+                VBOVertices[globalIndex++] = 1- texCoords[i][j].x;
+                VBOVertices[globalIndex++] =1- texCoords[i][j].y;
+
+                if (temperature != NULL)
+                    VBOVertices[globalIndex++] = temperature->getColors()[colorIndex++];
 
 
             }

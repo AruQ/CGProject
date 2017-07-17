@@ -88,8 +88,10 @@ int main()
 
     Matrix matrix("../data/lava.dat");
 
-//    altitude.addMatrix(matrix);
+    altitude.addMatrix(matrix);
     Temperature temperature ("../data/temperature.dat");
+
+    altitude.setTemperature(&temperature);
 //    temperature.printColor();
 
     MyTexture texture("../images/texture.png");
@@ -124,14 +126,17 @@ int main()
 
 
     // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (GLvoid*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (GLvoid*)0);
     glEnableVertexAttribArray(0);
     //normals
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (GLvoid*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (GLvoid*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
     // TexCoord attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (GLvoid*)(6 * sizeof(float)));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (GLvoid*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
+    // red value
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (GLvoid*)(8 * sizeof(float)));
+    glEnableVertexAttribArray(3);
 
 
 

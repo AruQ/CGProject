@@ -123,8 +123,8 @@ public:
 
             setMinMaxVertices();
 
-            calculateNormals();
 
+            calculateNormals();
             updatePositionVertices();
 
             calculateTexCoords();
@@ -249,8 +249,8 @@ protected:
 
 
 
-    const int neighborhoodPattern[4][2]=
-    {{-1,0},{0,1}, {1,0},{0,-1}};
+    const int neighborhoodPattern[8][2]=
+    {{-1,-1},{-1,1},{-1,0},{0,1},{1,-1},{1,0},{0,-1}, {1,1}};
 
 
     glm::vec3 getNormalToFace(glm::vec3& p1, glm::vec3& p2, glm::vec3& p3)
@@ -263,11 +263,24 @@ protected:
         return normal;
     }
 
+    glm::vec3 crossProduct(glm::vec3& p2, glm::vec3& p3)
+    {
+        glm::vec3 normal= glm::cross (p2,p3);
+
+        return normal;
+    }
+
+    void stampaVec (glm::vec3 vector)
+    {
+        cout<<vector.x <<" "<< vector.y<<" "<<vector.z <<std::endl;
+
+    }
+
     glm::vec3 getNormalOfVertex (unsigned int i, unsigned int j)
     {
         std::vector <glm::vec3> normalFaces;
         glm::vec3 p1 = vertices[i][j];
-        for (int n = 0; n < 4; ++n)
+        for (int n = 0; n < 8; ++n)
         {
 
             glm::vec3* p2= getVertex(i+neighborhoodPattern[n][0],j+neighborhoodPattern[n][1]);
@@ -281,11 +294,57 @@ protected:
 
         for (int i = 0; i < normalFaces.size(); ++i) {
             normal = normal+normalFaces[i];
+
         }
 
+//        stampaVec( glm::normalize(normal));
+
+//        normal.x *= -1;
+        normal.y *= -1;
+//        normal.z *= -1;
         return glm::normalize(normal);
 
     }
+
+    //    glm::vec3 getNormalOfVertex (unsigned int i, unsigned int j)
+    //    {
+    //        std::vector <glm::vec3> normalFaces;
+    //        glm::vec3 p1 = vertices[i][j];
+    //                cout<<"i vertici vicini di sono : ";
+    //                stampaVec(p1);
+    //        for (int n = 0; n < 8; ++n)
+    //        {
+
+    //            glm::vec3* p2= getVertex(i+neighborhoodPattern[n][0],j+neighborhoodPattern[n][1]);
+    ////            glm::vec3* p3= getVertex(i+neighborhoodPattern[(n+1)%4][0],j+neighborhoodPattern[(n+1)%4][1]);
+    //            if(p2 != NULL)
+    //            {
+    //                stampaVec(*p2);
+
+    //                normalFaces.push_back(glm::cross(p1,*p2));
+    //            }
+
+    //        }
+
+    //        glm::vec3 normal(0.0f,0.0f,0.0f);
+
+
+    ////        cout<<"i normali sono :"<<endl;
+    //        for (int i = 0; i < normalFaces.size(); ++i) {
+    //            normal = normal+normalFaces[i];
+    //        }
+
+    //        cout<<"risultato :"<<endl;
+
+    //        stampaVec( normal);
+    //        cout<<"normalizzato :"<<endl;
+
+    //        stampaVec( glm::normalize(normal));
+
+    ////        normal.y *= -1;
+    //        return glm::normalize(normal);
+
+    //    }
 
     glm::vec3* getVertex(unsigned int i, unsigned int j)
     {
@@ -305,8 +364,6 @@ protected:
 
     float averageNeighbourhood(const int i, const int j)
     {
-
-        //        cout<<"prova "<<data[0];
         float sum = 0.0f;
         int cout_cells = 0;
         for (int _i = -1; _i <= 0; ++_i) {
@@ -316,16 +373,15 @@ protected:
                 {
                     if (data[i+_i][j+_j] !=NODATA_value)
                     {
-                        //                    printf ("Sono cella (%d, %d) e sto sommando %f della cella (%d,%d)\n", i,j,data[i+_i][j+_j], i+_i,j+_j);
+
                         sum += data[i+_i][j+_j];
                         cout_cells++;
                     }
                 }
             }
         }
-
         return sum /cout_cells;
-        //        printf ("count_cell %d \n", cout_cells );
+
 
     }
 
@@ -414,8 +470,6 @@ protected:
             for (int j = 0; j < coordsAltitude.nCols; ++j)
             {
                 texCoords[i][j] = glm::vec2((float)i/coordsAltitude.nRows,(float) j/coordsAltitude.nCols);
-
-                //                cout<<"texCoords "<<texCoords[i][j].x <<"  "<<texCoords[i][j].y<<endl;
 
             }
 

@@ -57,10 +57,9 @@ public:
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
 
-//        glUniform1i(glGetUniformLocation(shader->Program, "material.diffuse"),  0);
-        glUniform1i(glGetUniformLocation(shader->Program, "texture_diffuse1"),  0);
-//        glUniform1i(glGetUniformLocation(shader->Program, "material.specular"), 1);
-//        glUniform1f(glGetUniformLocation(shader->Program, "material.shininess"), 32.0f);
+        glUniform1i(glGetUniformLocation(shader->Program, "material.diffuse"),  0);
+        glUniform1i(glGetUniformLocation(shader->Program, "material.specular"), 1);
+        glUniform1f(glGetUniformLocation(shader->Program, "material.shininess"), 32.0f);
 
 
     }

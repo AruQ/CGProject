@@ -12,6 +12,7 @@
 #include "Shader.h"
 #include "Camera.h"
 #include "Altitude.h"
+#include "PointLight.h"
 
 #include "Texture.h"
 #include "Temperature.h"
@@ -32,6 +33,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void Do_Movement();
+
+
+//LightProperties
+Intensity intensity = Intensity (glm::vec3 (0.5f, 0.5f, 0.5f),glm::vec3 (0.9f, 0.9f, 0.9f),glm::vec3(1.0f, 1.0f, 1.0f) );
+PointLight pointLight = PointLight(1,glm::vec4(0.0f, 0.0f, -1.0f,1.0f),1.0f, 0.00014,0.0000007, intensity);
 
 // Camera
 Camera camera(glm::vec3(0.0f, 0.0f, -1.0f));
@@ -82,8 +88,8 @@ int main()
     Altitude altitude("../data/altitudes.dat");
 
 
-//    Altitude altitude("../data/DEM_test.dat");
-//        Altitude altitude("../data/DEM_Albano.asc");
+    //    Altitude altitude("../data/DEM_test.dat");
+    //        Altitude altitude("../data/DEM_Albano.asc");
 
 
     Matrix matrix("../data/lava.dat");
@@ -92,20 +98,22 @@ int main()
     Temperature temperature ("../data/temperature.dat");
 
     altitude.setTemperature(&temperature);
-//    temperature.printColor();
+    //    temperature.printColor();
 
     MyTexture texture("../images/texture.png");
     texture.setParameters(GL_REPEAT, GL_REPEAT,GL_NEAREST, GL_NEAREST);
 
 
     float* vertices = altitude.getVBOVertices();
-//    camera.Position = glm::vec3(altitude.getCoordinates().nCols/**altitude.getCellSize()/2*/, altitude.getMaximumAltitude(),(float) altitude.getCoordinates().nRows/**altitude.getCellSize()*/);
+    //    camera.Position = glm::vec3(altitude.getCoordinates().nCols/**altitude.getCellSize()/2*/, altitude.getMaximumAltitude(),(float) altitude.getCoordinates().nRows/**altitude.getCellSize()*/);
 
 
-    cout<<"aaa"<<altitude.getMinimumAltitude()<<endl;
-    cout<<"aaa"<<altitude.getMaximumAltitude()<<endl;
-//        altitude.printVBO();
+    cout<<"MINIMUM ALTITUDE "<<altitude.getMinimumAltitude()<<endl;
+    cout<<"MAXIUM ALTITUDE "<<altitude.getMaximumAltitude()<<endl;
+    //        altitude.printVBO();
     //    altitude.printEBO();
+
+    cout<<pointLight<<endl;
 
 
     unsigned int* indices = altitude.getEBO();
@@ -163,6 +171,12 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         shader.Use();   // <-- Don't forget this one!
+
+        //        pointLight.setPosition(camera.Position);
+        pointLight.setPosition(camera.Position);
+
+        pointLight.SetUniformData(&shader,"light");
+
         // Transformation matrices
         glm::mat4 projection = glm::perspective(camera.Zoom, (float)screenWidth/(float)screenHeight, 0.1f, 40000.0f);
         glm::mat4 view = camera.GetViewMatrix();
@@ -171,13 +185,10 @@ int main()
 
         // Draw the loaded model
         glm::mat4 model ;
-//        model = glm::rotate(model, 90.0f, glm::vec3(0.0f, 0.0f, 1.0f));
-//        model = glm::translate(model, glm::vec3(-50.0f, -10.0f, 100.0f)); // Translate it down a bit so it's at the center of the scene
-//        model = glm::translate(model, glm::vec3(0.0f,0.0f, altitude.getCoordinates().nRows)); // Translate it down a bit so it's at the center of the scene
-//        model = glm::translate(model, glm::vec3(altitude.getCoordinates().nCols/2,0.0f, 0.0f)); // Translate it down a bit so it's at the center of the scene
-//                model = glm::scale(model, glm::vec3(0.8f, 0.8f, 0.8f));	// It's a bit too big for our scene, so scale it down
+
+//        model =  glm::scale(model,glm::vec3(0.5f,0.5f,0.5f));
         glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(shader.Program, "texture_diffuse1"), 1);
+
 
 
         texture.bindTexture(&shader);

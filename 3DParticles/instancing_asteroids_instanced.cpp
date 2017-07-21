@@ -96,8 +96,7 @@ void updatePositions (std::vector <Particle>& particles, glm::mat4* modelMatrice
     else
         return;
     // Set transformation matrices as an instance vertex attribute (with divisor 1)
-    // NOTE: We're cheating a little by taking the, now publicly declared, VAO of the model's mesh(es) and adding new vertexAttribPointers
-    // Normally you'd want to do this in a more organized fashion, but for learning purposes this will do.
+
     for(GLuint i = 0; i < rock.meshes.size(); i++)
     {
         GLuint VAO = rock.meshes[i].VAO;
@@ -122,7 +121,6 @@ void updatePositions (std::vector <Particle>& particles, glm::mat4* modelMatrice
 
 }
 
-// The MAIN function, from here we start our application and run our Game loop
 int main()
 {
 
@@ -135,7 +133,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", NULL, NULL); // Windowed
+    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Particle 3D", NULL, NULL); // Windowed
     glfwMakeContextCurrent(window);
 
     // Set the required callback functions
@@ -244,82 +242,7 @@ int main()
         1,1,-1
     };
 
-    //    GLfloat vertices[] ={
 
-    //        -1,1,1,
-    //        1,1,1,
-
-    //        1,1,1,
-    //        1,-1,1,
-
-    //        1,-1,1,
-    //        -1,-1,1,
-
-    //        -1,-1,1,
-    //        -1,1,1,
-
-    //        -1,-1,1,
-    //        -1,-1,-1,
-
-    //        -1,-1,-1,
-    //        -1,1,-1,
-
-    //        -1,1,-1,
-    //        -1,1,1,
-
-    //        -1,1,-1,
-    //        1,1,-1,
-
-    //        1,1,-1,
-    //        1,1,1,
-
-    //        -1,-1,-1,
-    //        1,-1,-1,
-
-    //        1,-1,-1,
-    //        1,-1,1,
-
-    //        1,-1,-1,
-    //        1,1,-1,
-
-
-
-    //        -0.5,0.5,0.5,
-    //        0.5,0.5,0.5,
-
-    //        0.5,0.5,0.5,
-    //        0.5,-0.5,0.5,
-
-    //        0.5,-0.5,0.5,
-    //        -0.5,-0.5,0.5,
-
-    //        -0.5,-0.5,0.5,
-    //        -0.5,0.5,0.5,
-
-    //        -0.5,-0.5,0.5,
-    //        -0.5,-0.5,-0.5,
-
-    //        -0.5,-0.5,-0.5,
-    //        -0.5,0.5,-0.5,
-
-    //        -0.5,0.5,-0.5,
-    //        -0.5,0.5,0.5,
-
-    //        -0.5,0.5,-0.5,
-    //        0.5,0.5,-0.5,
-
-    //        0.5,0.5,-0.5,
-    //        0.5,0.5,0.5,
-
-    //        -0.5,-0.5,-0.5,
-    //        0.5,-0.5,-0.5,
-
-    //        0.5,-0.5,-0.5,
-    //        0.5,-0.5,0.5,
-
-    //        0.5,-0.5,-0.5,
-    //        0.5,0.5,-0.5
-    //    };
 
 
     GLuint VBO, VAO;
@@ -361,9 +284,6 @@ int main()
     instanceShader.Use();
     glUniformMatrix4fv(glGetUniformLocation(instanceShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
-
-    // Generate a large list of semi-random model transformation matrices
-    //    GLuint amount = 10000;
 
     glm::mat4* modelMatrices;
     modelMatrices = new glm::mat4[NUM_PARTICLES];
@@ -430,8 +350,8 @@ int main()
         glUniform4f(glGetUniformLocation(cubeShader.Program, "inColor"), 1.0f, 1.0f, 0.0f, 0.2f);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
-//        glUniform4f(glGetUniformLocation(cubeShader.Program, "inColor"), 1.0f, 1.0f, 1.0f, 1.0f);
-//        glDrawArrays(GL_LINES, 36, 36);
+        glUniform4f(glGetUniformLocation(cubeShader.Program, "inColor"), 1.0f, 1.0f, 1.0f, 1.0f);
+        glDrawArrays(GL_LINES, 36, 36);
         glBindVertexArray(0);
 
         glDisable(GL_BLEND);
@@ -439,13 +359,7 @@ int main()
 
 
 
-
-
-
-
-
-
-        // Draw meteorites
+        // Draw particles
         instanceShader.Use();
 
         spotLight.SetUniformData(&instanceShader,"light");

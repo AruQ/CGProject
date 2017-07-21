@@ -1,4 +1,4 @@
-project(ProvaInstanced)
+project(3DParticles)
 cmake_minimum_required(VERSION 2.8)
 
 find_package(PkgConfig REQUIRED)

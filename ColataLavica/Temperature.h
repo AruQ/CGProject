@@ -19,12 +19,13 @@ public:
     {
 
 
+//        cout<<"max = "<<maximum << "min= "<<minimum<<endl;
         setMin();
         setMax();
 
-        cout<<"max = "<<maximum << "min= "<<minimum<<endl;
 
-        temperatureColor = new float [(coords.nRows+1) * (coords.nCols+1)];
+        size = (coords.nRows+1) * (coords.nCols+1);
+        temperatureColor = new float [size];
 
         computeColor();
 
@@ -55,19 +56,49 @@ public:
     }
 
 
-
-
-    void createTexture ()
+    size_t getSize ()
     {
-
-
-        glGenTextures(1, &n_tex_surface);
-        glBindTexture(GL_TEXTURE_2D, n_tex_surface);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coords.nCols, coords.nRows, 0, GL_RGBA, GL_FLOAT, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
+        return size;
     }
+
+
+
+//    void createTexture ()
+//    {
+
+
+//        glGenTextures(1, &n_tex_surface);
+//        glBindTexture(GL_TEXTURE_2D, n_tex_surface);
+//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coords.nCols, coords.nRows, 0, GL_RGBA, GL_FLOAT, data);
+//        glGenerateMipmap(GL_TEXTURE_2D);
+//    }
+
+
+//    void updateColor (float* temperature)
+//    {
+//        //x' = x - min / (max-min)
+
+
+//        for (int i = 0; i < size; ++i) {
+//            if(temperatureColor[i] != 0.0f)
+//            temperatureColor[i]+=0.00001f;
+//        }
+////        updateMinMax(temperature);
+////        int globalIndex = 0;
+////        for (int i = 0; i < coords.nRows+1; ++i) {
+////            for (int j = 0; j < coords.nCols+1; ++j) {
+////                if (i>=coords.nRows || j>= coords.nCols || temperature[globalIndex] == 0.0f)
+////                {
+////                    temperatureColor[globalIndex++] = 0.0f;
+////                }
+////                else
+////                    temperatureColor[globalIndex++] = (temperature[globalIndex] - minimum) / (maximum - minimum);
+////            }
+////        }
+//    }
+
 
 
 
@@ -76,7 +107,8 @@ protected:
 
     float minimum;
     float maximum;
-    GLuint n_tex_surface;
+
+    size_t size;
 
     void setMin ()
     {
@@ -136,6 +168,38 @@ protected:
         }
 
     }
+
+
+//    void updateMinMax (float* temperature)
+//    {
+
+//        bool first = false;
+//        for (int i = 0; i < coords.nRows*coords.nCols; ++i) {
+
+//                if (temperature[i] != NODATA_value)
+//                {
+//                    if (!first)
+//                    {
+//                        minimum = temperature[i];
+//                        maximum = temperature[i];
+//                        first = true;
+//                    }
+//                    if (temperature[i] < minimum)
+//                    {
+//                        minimum = temperature[i];
+//                    }
+
+//                    if (temperature[i] > maximum)
+//                    {
+//                        maximum = temperature[i];
+//                    }
+//                }
+//            }
+
+//    }
+
+
+
 
 
 

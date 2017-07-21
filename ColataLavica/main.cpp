@@ -36,7 +36,7 @@ void Do_Movement();
 
 
 //LightProperties
-Intensity intensity = Intensity (glm::vec3 (0.5f, 0.5f, 0.5f),glm::vec3 (0.9f, 0.9f, 0.9f),glm::vec3(1.0f, 1.0f, 1.0f) );
+Intensity intensity = Intensity (glm::vec3 (0.7f, 0.7f, 0.7f),glm::vec3 (0.9f, 0.9f, 0.9f),glm::vec3(1.0f, 1.0f, 1.0f) );
 PointLight pointLight = PointLight(1,glm::vec4(0.0f, 0.0f, -1.0f,1.0f),1.0f, 0.00014,0.0000007, intensity);
 
 // Camera
@@ -88,17 +88,14 @@ int main()
     Altitude altitude("../data/altitudes.dat");
 
 
-    //    Altitude altitude("../data/DEM_test.dat");
-    //        Altitude altitude("../data/DEM_Albano.asc");
-
-
     Matrix matrix("../data/lava.dat");
 
     altitude.addMatrix(matrix);
     Temperature temperature ("../data/temperature.dat");
 
+
     altitude.setTemperature(&temperature);
-    //    temperature.printColor();
+
 
     MyTexture texture("../images/texture.png");
     texture.setParameters(GL_REPEAT, GL_REPEAT,GL_NEAREST, GL_NEAREST);
@@ -127,7 +124,7 @@ int main()
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, altitude.getSizeVBO()*sizeof(float), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, altitude.getSizeVBO()*sizeof(float), vertices, GL_STREAM_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, altitude.getSizeEBO()*sizeof(unsigned int), indices, GL_STATIC_DRAW);
@@ -149,10 +146,6 @@ int main()
 
 
     glBindVertexArray(0); // Unbind VAO
-
-
-
-
 
     // Game loop
     while(!glfwWindowShouldClose(window))
@@ -186,18 +179,20 @@ int main()
         // Draw the loaded model
         glm::mat4 model ;
 
-//        model =  glm::scale(model,glm::vec3(0.5f,0.5f,0.5f));
+        //        model =  glm::scale(model,glm::vec3(0.5f,0.5f,0.5f));
         glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
 
 
         texture.bindTexture(&shader);
         glBindVertexArray(VAO);
+
+
+
         glDrawElements(GL_TRIANGLES, altitude.getSizeEBO(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
 
         texture.unbindTexture();
-        //        ourModel.Draw(shader);
 
         // Swap the buffers
         glfwSwapBuffers(window);
